@@ -25,14 +25,38 @@ class MyApp extends StatelessWidget {
 class TextToSpeech extends StatelessWidget {
   final FlutterTts flutterTts = FlutterTts();
   final TextEditingController textEditingController = TextEditingController();
+  bool next = false;
+  bool brk = false;
 
   TextToSpeech({super.key});
 
   speak(String text) async {
-    await flutterTts.setLanguage("en-US");
-    await flutterTts.setPitch(0.8); //0.5 to 1.5
-    await flutterTts.setVoice({"name": "Karen", "locale": "en-AU"});
-    await flutterTts.speak(text);
+    final splitted = text.split('.');
+    int i = 0;
+
+    brk = false;
+    next = false;
+
+    while (!next) {
+      await flutterTts.setLanguage("en-US");
+      await flutterTts.setPitch(0.8); //0.5 to 1.5
+      await flutterTts.setSpeechRate(0.5);
+      // await flutterTts.setVoice({"name": "Karen", "locale": "en-AU"});
+      await flutterTts.speak(splitted[i]);
+      await Future.delayed(const Duration(milliseconds: 2500));
+      if (next) {
+        i++;
+        next = false;
+        if (i >= splitted.length) {
+          await flutterTts.speak("Thank you for using my services.");
+          break;
+        }
+      }
+      if (brk) {
+        await flutterTts.speak("Thank you for using my services.");
+        break;
+      }
+    }
   }
 
   @override
@@ -48,6 +72,14 @@ class TextToSpeech extends StatelessWidget {
             ElevatedButton(
               child: const Text("Press to begin speech"),
               onPressed: () => speak(textEditingController.text),
+            ),
+            ElevatedButton(
+              child: const Text("Next"),
+              onPressed: () => next = true,
+            ),
+            ElevatedButton(
+              child: const Text("End"),
+              onPressed: () => brk = true,
             ),
           ])),
     );
